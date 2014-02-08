@@ -1,0 +1,14 @@
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+
+# Compiled Source
+*.class
+
+# Extras
+*.png
+*.jar
+*.cache
+
+
