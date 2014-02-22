@@ -18,6 +18,7 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		Toast.makeText(this, "Activity CREATED", Toast.LENGTH_SHORT).show();
 	}
 	
 	@Override
@@ -26,6 +27,36 @@ public class MainActivity extends ActionBarActivity {
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_activity_actions, menu);
 	    return super.onCreateOptionsMenu(menu);
+	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		Toast.makeText(this, "Activity STARTED", Toast.LENGTH_SHORT).show();
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		Toast.makeText(this, "Activity RESUMED", Toast.LENGTH_SHORT).show();
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		Toast.makeText(this, "Activity PAUSED", Toast.LENGTH_SHORT).show();
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		Toast.makeText(this, "Activity STOPPED", Toast.LENGTH_SHORT).show();
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Toast.makeText(this, "Activity DESTROYED", Toast.LENGTH_SHORT).show();
 	}
 	
 	@Override

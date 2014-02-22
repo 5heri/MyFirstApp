@@ -7,5 +7,8 @@
     <color name="text_tab_selected">#5d5d5d</color>
     <color name="text_tab_unselected">#838183</color>
     <color name="purple_monster">#461B7E</color>
-
+    <color name="yellow">#ffff00</color>
+    <color name="light_green">#33cc33</color>
+    <color name="light_grey">#3d3e3d</color>
+    
 </resources>

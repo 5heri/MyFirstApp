@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- the theme applied to the application or activity -->
     <style name="CustomActionBarTheme"
            parent="@style/Theme.AppCompat.Light.DarkActionBar">
@@ -8,13 +8,15 @@
         <!-- Support library compatibility -->
         <item name="actionBarStyle">@style/MyActionBar</item>
         <item name="actionBarTabTextStyle">@style/MyActionBarTabText</item>
-        <item name="actionMenuTextColor">@color/purple_monster</item>
+        <item name="actionMenuTextColor">@color/light_green</item>
+        
     </style>
 
     <!-- ActionBar styles -->
     <style name="MyActionBar"
            parent="@style/Widget.AppCompat.ActionBar">
         <item name="titleTextStyle">@style/MyActionBarTitleText</item>
+        <item name="background">@color/yellow</item>
     </style>
 
     <!-- ActionBar title text -->
