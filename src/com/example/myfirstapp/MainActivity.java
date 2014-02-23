@@ -1,8 +1,21 @@
 package com.example.myfirstapp;
 
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationClient;
+
+import android.app.Dialog;
+import android.app.Activity;
+//import android.app.DialogFragment;
+import android.content.IntentSender;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment; //TODO: check difference in android.app and android.support...
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -10,15 +23,44 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements 
+	GooglePlayServicesClient.ConnectionCallbacks,
+	GooglePlayServicesClient.OnConnectionFailedListener {
 
 	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
+	
+	//handle errors for location
+	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+	
+	// Stores the current instantiation of the location client in this object
+    private LocationClient mLocationClient;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		Toast.makeText(this, "Activity CREATED", Toast.LENGTH_SHORT).show();
+		
+		mLocationClient = new LocationClient(this, this, this);
+	}
+	
+	
+	
+	//TODO: DISPLAY LNG_LAT_STR IN UI (rather than Toast)
+	//TODO: UPDATE LNG_LAT_STR after some time
+	//TODO: FIX GET_LOCATION BUTTON
+	// This method is run when "getLocation" button is pressed
+	public void getLocation(View view) {
+		// If Google Play Services is available
+        if (servicesConnected()) {
+
+            // Get the current location
+            Location currentLocation = mLocationClient.getLastLocation();
+            double latitude = currentLocation.getLatitude();
+            double longitude = currentLocation.getLongitude();
+            String lng_lat_str = "LAT: " + latitude + "           LNG: " + longitude; 
+            Toast.makeText(this, lng_lat_str, Toast.LENGTH_LONG).show();
+        }
 	}
 	
 	@Override
@@ -33,6 +75,10 @@ public class MainActivity extends ActionBarActivity {
 	public void onStart() {
 		super.onStart();
 		Toast.makeText(this, "Activity STARTED", Toast.LENGTH_SHORT).show();
+		
+		// Connecting client
+		mLocationClient.connect();
+		
 	}
 	
 	@Override
@@ -43,20 +89,23 @@ public class MainActivity extends ActionBarActivity {
 	
 	@Override
 	public void onPause() {
-		super.onPause();
 		Toast.makeText(this, "Activity PAUSED", Toast.LENGTH_SHORT).show();
+		super.onPause();
 	}
 	
 	@Override
 	public void onStop() {
-		super.onStop();
 		Toast.makeText(this, "Activity STOPPED", Toast.LENGTH_SHORT).show();
+		// Disconnecting the client
+		mLocationClient.disconnect();
+		
+		super.onStop();
 	}
 	
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
 		Toast.makeText(this, "Activity DESTROYED", Toast.LENGTH_SHORT).show();
+		super.onDestroy();
 	}
 	
 	@Override
@@ -89,6 +138,125 @@ public class MainActivity extends ActionBarActivity {
 	
 	private void openSettings() {
 	    Toast.makeText(this, "Settings button pressed", Toast.LENGTH_SHORT).show();
+	}
+	
+	/*********************************/
+	/* REGARDING LOCATION MANAGEMENT */
+	/*********************************/
+	 
+	
+	// Handle error dialog 
+	public static class ErrorDialogFragment extends DialogFragment {
+		
+		private Dialog mDialog;
+		
+		public ErrorDialogFragment() {
+			super();
+			mDialog = null;
+		}
+		
+		public void setDialog(Dialog dialog) {
+			mDialog = dialog;
+		}
+		
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			return mDialog;
+		}
+		
+	}
+	
+	/*
+	 * handles results from google play services 
+	 */
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+
+        case CONNECTION_FAILURE_RESOLUTION_REQUEST :
+        /*
+         * If the result code is Activity.RESULT_OK, try
+         * to connect again
+         */
+            switch (resultCode) {
+                case Activity.RESULT_OK :
+                /*
+                 * Try the request again
+                 */
+
+                break;
+            }
+
+		}
+	}
+	
+	
+	// Checks that google play services are available
+	private boolean servicesConnected() {
+		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+		
+		if (ConnectionResult.SUCCESS == resultCode) {
+			// Google play services is available
+			Log.d("Location Updates", "Google Play services is available");
+			return true;
+		} else {
+			// Google play services is not available
+			
+			// Get the error code
+			// Display an error dialog
+            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(
+            		resultCode, 
+            		this, 
+            		CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            
+            if (dialog != null) {
+                ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+                errorFragment.setDialog(dialog);
+                errorFragment.show(getSupportFragmentManager(), "Location Updates");
+            }
+            return false;
+		}
+		
+	}
+	
+	@Override
+	public void onConnected(Bundle arg0) {
+		 Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+		
+	}
+	
+	@Override
+	public void onDisconnected() {
+		 Toast.makeText(this, "Disonnected. Please re-connect.", Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+		
+		if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(
+                        this,
+                        CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                /*
+                 * Thrown if Google Play services canceled the original
+                 * PendingIntent
+                 */
+            } catch (IntentSender.SendIntentException e) {
+                // Log the error
+                e.printStackTrace();
+            }
+        } else {
+            /*
+             * If no resolution is available, display a dialog to the
+             * user with the error.
+             */
+        	
+        	showDialog(connectionResult.getErrorCode());
+            //showErrorDialog(connectionResult.getErrorCode());
+        }
+		
 	}
 
 }

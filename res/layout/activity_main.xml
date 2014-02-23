@@ -1,21 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal" 
-    android:background="@color/light_grey" > 
+    android:background="@color/light_grey"
+    android:orientation="horizontal" >
     
-    <EditText android:id="@+id/edit_message"
-        android:layout_weight="1" 
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/edit_message" 
-        />
+   
+    
+    
+
     <Button
+        android:id="@+id/getLocationButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_send"
-        android:onClick="sendMessage" 
-        />
-</LinearLayout>
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="100dp"
+        android:onClick="getLocation"
+        android:text="@string/button_get_location" />
+
+    <Button
+        android:id="@+id/sendButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:onClick="sendMessage"
+        android:text="@string/button_send" />
+
+    <EditText
+        android:id="@+id/edit_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/sendButton"
+        android:ems="10"
+        android:hint="@string/edit_message" >
+
+        <requestFocus />
+    </EditText>
+
+</RelativeLayout>
