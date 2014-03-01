@@ -5,12 +5,16 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 
 import android.app.Dialog;
 import android.app.Activity;
+import android.content.Context;
 //import android.app.DialogFragment;
 import android.content.IntentSender;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment; //TODO: check difference in android.app and android.support...
@@ -25,21 +29,56 @@ import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity implements 
 	GooglePlayServicesClient.ConnectionCallbacks,
-	GooglePlayServicesClient.OnConnectionFailedListener {
+	GooglePlayServicesClient.OnConnectionFailedListener,
+	LocationListener {
 
 	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
+	public static final String KEY_UPDATES_REQUESTED =
+            "com.example.android.location.KEY_UPDATES_REQUESTED";
 	
 	//handle errors for location
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	
+	
+	private static final int MILLISECONDS_PER_SECOND = 1000;
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+    private static final long UPDATE_INTERVAL =
+            MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
+    private static final int FASTEST_INTERVAL_IN_SECONDS = 1;
+    private static final long FASTEST_INTERVAL =
+            MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
+	
 	// Stores the current instantiation of the location client in this object
     private LocationClient mLocationClient;
+    
+    // Define an object that holds accuracy and frequency parameters
+    private LocationRequest mLocationRequest;
+    
+    private boolean mUpdatesRequested;
+    
+    // Handle to SharedPreferences for this app
+    SharedPreferences mPrefs;
+    
+    // Handle to a SharedPreferences editor
+    SharedPreferences.Editor mEditor;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		Toast.makeText(this, "Activity CREATED", Toast.LENGTH_SHORT).show();
+		
+		mLocationRequest = LocationRequest.create();
+		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		mLocationRequest.setInterval(UPDATE_INTERVAL);
+		mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+		
+		mPrefs = getSharedPreferences("SharedPreferences", Context.MODE_PRIVATE);
+		
+		// Get an editor
+        mEditor = mPrefs.edit();
+        
+        mUpdatesRequested = false; // starts turned off, until user turns on
 		
 		mLocationClient = new LocationClient(this, this, this);
 	}
@@ -74,7 +113,7 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onStart() {
 		super.onStart();
-		Toast.makeText(this, "Activity STARTED", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Activity STARTED", Toast.LENGTH_SHORT).show();
 		
 		// Connecting client
 		mLocationClient.connect();
@@ -84,18 +123,32 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onResume() {
 		super.onResume();
-		Toast.makeText(this, "Activity RESUMED", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Activity RESUMED", Toast.LENGTH_SHORT).show();
+		if (mPrefs.contains(KEY_UPDATES_REQUESTED)) {
+			mUpdatesRequested = mPrefs.getBoolean(KEY_UPDATES_REQUESTED, false);
+		} else {
+			mEditor.putBoolean(KEY_UPDATES_REQUESTED, false);
+			mEditor.commit();
+		}
+		
 	}
 	
 	@Override
 	public void onPause() {
-		Toast.makeText(this, "Activity PAUSED", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Activity PAUSED", Toast.LENGTH_SHORT).show();
+		mEditor.putBoolean(KEY_UPDATES_REQUESTED, false);
+		mEditor.commit();
 		super.onPause();
 	}
 	
 	@Override
 	public void onStop() {
-		Toast.makeText(this, "Activity STOPPED", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Activity STOPPED", Toast.LENGTH_SHORT).show();
+
+		if (mLocationClient.isConnected()) {
+			mLocationClient.removeLocationUpdates(this);
+		}
+		
 		// Disconnecting the client
 		mLocationClient.disconnect();
 		
@@ -222,6 +275,10 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onConnected(Bundle arg0) {
 		 Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+		 
+		 if (mUpdatesRequested) {
+			 mLocationClient.requestLocationUpdates(mLocationRequest, this);
+		 }
 		
 	}
 	
@@ -256,6 +313,18 @@ public class MainActivity extends ActionBarActivity implements
         	showDialog(connectionResult.getErrorCode());
             //showErrorDialog(connectionResult.getErrorCode());
         }
+		
+	}
+
+
+
+	@Override
+	public void onLocationChanged(Location location) {
+		// Report to the UI that the location was updated
+        String msg = "Updated Location: " +
+                Double.toString(location.getLatitude()) + "," +
+                Double.toString(location.getLongitude());
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 		
 	}
 
