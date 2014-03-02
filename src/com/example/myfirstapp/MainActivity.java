@@ -8,6 +8,7 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.Activity;
 import android.content.Context;
@@ -15,6 +16,8 @@ import android.content.Context;
 import android.content.IntentSender;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment; //TODO: check difference in android.app and android.support...
@@ -65,6 +68,10 @@ public class MainActivity extends ActionBarActivity implements
     SharedPreferences.Editor mEditor;
     
     
+    // Used to draw on canvas
+    DrawLine dl;
+    
+    
     // MOCK VALUES
    /* private static final String PROVIDER = "flp";
     private static final double LAT = 37.377166;
@@ -90,13 +97,15 @@ public class MainActivity extends ActionBarActivity implements
 		// Get an editor
         mEditor = mPrefs.edit();
         
+        dl = new DrawLine(this);
+        
 		mLocationClient = new LocationClient(this, this, this);
 		
 		mUpdatesRequested = false; // starts turned off, until user turns on
 	}
 	
 	
-	
+	// Low Priority 
 	//TODO: DISPLAY LNG_LAT_STR IN UI (rather than Toast)
 	//TODO: UPDATE LNG_LAT_STR after some time
 	//TODO: FIX GET_LOCATION BUTTON
@@ -221,6 +230,7 @@ public class MainActivity extends ActionBarActivity implements
 	    Toast.makeText(this, "Settings button pressed", Toast.LENGTH_SHORT).show();
 	}
 	
+	@SuppressWarnings("unused")
 	private Location createLocation(double lat, double lng, float acc) {
 		Location newLocation = new Location("flp");
 		newLocation.setLatitude(lat);
@@ -275,7 +285,6 @@ public class MainActivity extends ActionBarActivity implements
 
                 break;
             }
-
 		}
 	}
 	
@@ -334,6 +343,7 @@ public class MainActivity extends ActionBarActivity implements
 		 Toast.makeText(this, "Disonnected. Please re-connect.", Toast.LENGTH_SHORT).show();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {
 		
@@ -363,18 +373,25 @@ public class MainActivity extends ActionBarActivity implements
 		
 	}
 
-
-
+	@SuppressLint("WrongCall")
 	@Override
 	public void onLocationChanged(Location location) {
 		// Report to the UI that the location was updated
+		double x = location.getLongitude();
+		double y = location.getLatitude();
         String msg = "Updated " +
-                Double.toString(location.getLatitude()) + "," +
-                Double.toString(location.getLongitude());
+                Double.toString(y) + "," +
+                Double.toString(x);
         Log.d(LOG_OUT, "Location-Change:     " + msg);
         
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-		
+        //Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        
+        dl.setPrevCurX((float)x);
+        dl.setPrevCurY((float)y);
+       // dl.onDraw
+        Bitmap b = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(b);
+        dl.onDraw(canvas);	
 	}
-
+	
 }
