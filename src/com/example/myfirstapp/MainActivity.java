@@ -31,6 +31,8 @@ public class MainActivity extends ActionBarActivity implements
 	GooglePlayServicesClient.ConnectionCallbacks,
 	GooglePlayServicesClient.OnConnectionFailedListener,
 	LocationListener {
+	
+	private final static String LOG_OUT = "LOG_OUT-APP";
 
 	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
 	public static final String KEY_UPDATES_REQUESTED =
@@ -61,6 +63,16 @@ public class MainActivity extends ActionBarActivity implements
     
     // Handle to a SharedPreferences editor
     SharedPreferences.Editor mEditor;
+    
+    
+    // MOCK VALUES
+   /* private static final String PROVIDER = "flp";
+    private static final double LAT = 37.377166;
+    private static final double LNG = -122.086966;
+    private static final float ACCURACY = 3.0f;*/
+    
+    
+    
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -78,9 +90,9 @@ public class MainActivity extends ActionBarActivity implements
 		// Get an editor
         mEditor = mPrefs.edit();
         
-        mUpdatesRequested = false; // starts turned off, until user turns on
-		
 		mLocationClient = new LocationClient(this, this, this);
+		
+		mUpdatesRequested = false; // starts turned off, until user turns on
 	}
 	
 	
@@ -99,6 +111,7 @@ public class MainActivity extends ActionBarActivity implements
             double longitude = currentLocation.getLongitude();
             String lng_lat_str = "LAT: " + latitude + "           LNG: " + longitude; 
             Toast.makeText(this, lng_lat_str, Toast.LENGTH_LONG).show();
+    		
         }
 	}
 	
@@ -118,6 +131,12 @@ public class MainActivity extends ActionBarActivity implements
 		// Connecting client
 		mLocationClient.connect();
 		
+		/*if (mLocationClient.isConnected()) {			
+			mLocationClient.setMockMode(true);
+			Location testLocation = createLocation(LAT, LNG, ACCURACY);
+    		mLocationClient.setMockLocation(testLocation);
+		}*/
+
 	}
 	
 	@Override
@@ -125,8 +144,17 @@ public class MainActivity extends ActionBarActivity implements
 		super.onResume();
 		//Toast.makeText(this, "Activity RESUMED", Toast.LENGTH_SHORT).show();
 		if (mPrefs.contains(KEY_UPDATES_REQUESTED)) {
-			mUpdatesRequested = mPrefs.getBoolean(KEY_UPDATES_REQUESTED, false);
+			//Log.d("CONTAINS KEY_UPDATES", "TRUE");
+			mUpdatesRequested = true; 
+					//mPrefs.getBoolean(KEY_UPDATES_REQUESTED, false);   // FIX THIS!
+			/*if (mUpdatesRequested) {
+				Log.d("onResume: ", "TRUE");
+			} else {
+				Log.d("onResume: ", "FALSE");
+			}*/
+			
 		} else {
+			//Log.d("CONTAINS KEY_UPDATES", "FALSE");
 			mEditor.putBoolean(KEY_UPDATES_REQUESTED, false);
 			mEditor.commit();
 		}
@@ -136,7 +164,7 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onPause() {
 		//Toast.makeText(this, "Activity PAUSED", Toast.LENGTH_SHORT).show();
-		mEditor.putBoolean(KEY_UPDATES_REQUESTED, false);
+		mEditor.putBoolean(KEY_UPDATES_REQUESTED, mUpdatesRequested);
 		mEditor.commit();
 		super.onPause();
 	}
@@ -191,6 +219,14 @@ public class MainActivity extends ActionBarActivity implements
 	
 	private void openSettings() {
 	    Toast.makeText(this, "Settings button pressed", Toast.LENGTH_SHORT).show();
+	}
+	
+	private Location createLocation(double lat, double lng, float acc) {
+		Location newLocation = new Location("flp");
+		newLocation.setLatitude(lat);
+		newLocation.setLongitude(lng);
+		newLocation.setAccuracy(acc);
+		return newLocation;
 	}
 	
 	/*********************************/
@@ -276,9 +312,20 @@ public class MainActivity extends ActionBarActivity implements
 	public void onConnected(Bundle arg0) {
 		 Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
 		 
+		/* if (mUpdatesRequested) {
+				Log.d("onConnected before: ", "TRUE");
+			} else {
+				Log.d("onConnted before: ", "FALSE");
+			}*/
+		 
 		 if (mUpdatesRequested) {
 			 mLocationClient.requestLocationUpdates(mLocationRequest, this);
 		 }
+		/* if (mUpdatesRequested) {
+				Log.d("onResume after: ", "TRUE");
+			} else {
+				Log.d("onResume after: ", "FALSE");
+			}*/
 		
 	}
 	
@@ -321,9 +368,11 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onLocationChanged(Location location) {
 		// Report to the UI that the location was updated
-        String msg = "Updated Location: " +
+        String msg = "Updated " +
                 Double.toString(location.getLatitude()) + "," +
                 Double.toString(location.getLongitude());
+        Log.d(LOG_OUT, "Location-Change:     " + msg);
+        
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 		
 	}
